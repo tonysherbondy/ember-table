@@ -19,13 +19,19 @@ App.TableSimpleExample.LazyDataSource = Ember.ArrayProxy.extend
 
 App.TableSimpleExample.HeaderTreeCell = Ember.Table.HeaderCell.extend
   templateName: 'table-header-colspan-cell'
+  classNames: 'colspan-cell'
+  didInsertElement: ->
+
+App.TableSimpleExample.HeaderCell = Ember.Table.HeaderCell.extend
+  heightBinding: null
+  height: 30
 
 App.TableSimpleExample.ColumnGroups = Ember.ArrayController.extend
   columns: null
   headerCellViewClass: 'App.TableSimpleExample.HeaderTreeCell'
   columnWidth: Ember.computed ->
     widths = (@get('columns').getEach('columnWidth') or [])
-    widths.reduce ((sum, width) -> sum + width), 0
+    widths.reduce ((sum, width) -> sum + width), 1
   .property 'columns.@each.columnWidth'
 
 App.TableSimpleExample.TableController = Ember.Table.TableController.extend
@@ -34,15 +40,18 @@ App.TableSimpleExample.TableController = Ember.Table.TableController.extend
   numFixedColumns: 0
   numRows: 500000
   rowHeight: 30
+  headerHeight: 60
 
   columnGroups: Ember.computed ->
     columns = @get('columns')
     stocks  = App.TableSimpleExample.ColumnGroups.create
       headerCellName: 'Stocks'
-      columns: columns.slice(0, 2)
+      headerCellViewClass: 'App.TableSimpleExample.HeaderTreeCell'
+      columns: columns.slice(0, 3)
     bonds   = App.TableSimpleExample.ColumnGroups.create
       headerCellName: 'Bonds'
-      columns: columns.slice(2)
+      headerCellViewClass: 'App.TableSimpleExample.HeaderTreeCell'
+      columns: columns.slice(3)
     [stocks, bonds]
   .property 'columns'
 
@@ -55,7 +64,7 @@ App.TableSimpleExample.TableController = Ember.Table.TableController.extend
     columns= columnNames.map (key, index) ->
       name = key.charAt(0).toUpperCase() + key.slice(1)
       Ember.Table.ColumnDefinition.create
-        columnWidth: 100
+        columnWidth: 150
         headerCellName: name
         getCellContent: (row) -> row[key].toFixed(2)
     columns.unshiftObject(dateColumn)

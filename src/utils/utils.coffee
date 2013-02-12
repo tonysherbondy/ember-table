@@ -1,5 +1,7 @@
-Ember.MultiItemViewCollectionView = Ember.CollectionView.extend
+Ember.MultiItemViewCollectionView =
+Ember.CollectionView.extend Ember.StyleBindingsMixin,
   itemViewClassField: null
+  styleBindings: 'width'
   createChildView: (view, attrs) ->
     itemViewClassField = @get 'itemViewClassField'
     itemViewClass = attrs.content.get(itemViewClassField)

@@ -1,6 +1,6 @@
 Ember.LazyContainerView = Ember.ContainerView.extend Ember.StyleBindingsMixin,
   classNames:     'lazy-list-container'
-  styleBindings:  ['height']
+  styleBindings:  'height'
   content:        null
   itemViewClass:  null
   rowHeight:      null
