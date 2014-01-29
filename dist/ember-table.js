@@ -890,7 +890,6 @@ Ember.Table.TableCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixin
   styleBindings: 'width',
   row: Ember.computed.alias('parentView.row'),
   column: Ember.computed.alias('content'),
-  rowContent: Ember.computed.alias('row.content'),
   width: Ember.computed.alias('column.columnWidth'),
   init: function() {
     this._super();
@@ -904,14 +903,14 @@ Ember.Table.TableCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixin
     var contentPath;
     contentPath = this.get('column.contentPath');
     if (contentPath) {
-      return this.removeObserver("rowContent." + contentPath, this, this.contentDidChange);
+      return this.removeObserver("row." + contentPath, this, this.contentDidChange);
     }
   }).observesBefore('column.contentPath'),
   contentPathDidChange: (function() {
     var contentPath;
     contentPath = this.get('column.contentPath');
     if (contentPath) {
-      return this.addObserver("rowContent." + contentPath, this, this.contentDidChange);
+      return this.addObserver("row." + contentPath, this, this.contentDidChange);
     }
   }).observesBefore('column.contentPath'),
   /**
@@ -922,7 +921,7 @@ Ember.Table.TableCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixin
 
   cellContent: Ember.computed(function(key, value) {
     var column, row;
-    row = this.get('rowContent');
+    row = this.get('row');
     column = this.get('column');
     if (!(row && column)) {
       return;
@@ -933,7 +932,7 @@ Ember.Table.TableCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixin
       column.setCellContent(row, value);
     }
     return value;
-  }).property('rowContent.isLoaded', 'column')
+  }).property('row.isLoaded', 'column')
 });
 
 /**
