@@ -154,22 +154,21 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     unresizableColumns = tableColumns.filterProperty('canAutoResize', no)
     unresizableWidth = @_getTotalWidth unresizableColumns
 
+    # For the columns that can still be resized, scale by their default width.
+    # This ensures that resizing will work well if one column is initially
+    # a lot bigger than the others.
+    columnsToResize = tableColumns.filterProperty('canAutoResize')
+    totalResizableWidth = @_getTotalWidth columnsToResize
+
     # tableColumns does not include fixed columns. Fixed columns cannot
     # be auto-resized, usually because they were specified that way.
     # unResizable columns cannot be auto-resized, usually because they were
     # already manually resized by the user.
     availableWidth = totalWidth - fixedColumnsWidth - unresizableWidth
 
-    # This will happen if the user resizes a column and drags off the table.
-    # With the current setup, there isn't much we can do about this - but
-    # at least avoid breaking the table by setting columns to negative width
-    if availableWidth < 0
-      return
+    # Only expand columns from their default width, don't squish them
+    return if (availableWidth - totalResizableWidth) < 0
 
-    # For the columns that can still be resized, scale by their default width.
-    # This ensures that resizing will work well if one column is initially
-    # a lot bigger than the others.
-    columnsToResize = tableColumns.filterProperty('canAutoResize')
     totalDefaultWidth = @_getTotalWidth columnsToResize, 'defaultColumnWidth'
     columnsToResize.forEach (column) ->
       columnWidth = Math.floor(

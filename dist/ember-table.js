@@ -240,6 +240,10 @@ Ember.AddeparMixins.ResizeHandlerMixin = Ember.Mixin.create({
     };
   }),
   handleWindowResize: function(event) {
+    if ((typeof event.target.id !== "undefined" && event.target.id !== null)
+        && (event.target.id !== this.elementId)) {
+      return;
+    }
     if (!this.get('resizing')) {
       this.set('resizing', true);
       if (typeof this.onResizeStart === "function") {
@@ -1046,11 +1050,14 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
   */
 
   onColumnResize: function(event, ui) {
-    this.elementSizeDidChange();
     if (this.get('controller.forceFillColumns') && this.get('controller.columns').filterProperty('canAutoResize').length > 1) {
       this.set('column.canAutoResize', false);
     }
-    return this.get("column").resize(ui.size.width);
+    this.get('column').resize(ui.size.width);
+    this.elementSizeDidChange();
+    if (event.type === 'resizestop') {
+      this.get('controller').elementSizeDidChange();
+    }
   },
   elementSizeDidChange: function() {
     var maxHeight;
@@ -1062,7 +1069,7 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
         return maxHeight = thisHeight;
       }
     });
-    this.set('controller._contentHeaderHeight', maxHeight);
+    return this.set('controller._contentHeaderHeight', maxHeight);
   }
 });
 
@@ -1404,17 +1411,18 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     }
   },
   doForceFillColumns: function() {
-    var availableWidth, columnsToResize, fixedColumnsWidth, tableColumns, totalDefaultWidth, totalWidth, unresizableColumns, unresizableWidth;
+    var availableWidth, columnsToResize, fixedColumnsWidth, tableColumns, totalDefaultWidth, totalResizableWidth, totalWidth, unresizableColumns, unresizableWidth;
     totalWidth = this.get('_width');
     fixedColumnsWidth = this.get('_fixedColumnsWidth');
     tableColumns = this.get('tableColumns');
     unresizableColumns = tableColumns.filterProperty('canAutoResize', false);
     unresizableWidth = this._getTotalWidth(unresizableColumns);
+    columnsToResize = tableColumns.filterProperty('canAutoResize');
+    totalResizableWidth = this._getTotalWidth(columnsToResize);
     availableWidth = totalWidth - fixedColumnsWidth - unresizableWidth;
-    if (availableWidth < 0) {
+    if ((availableWidth - totalResizableWidth) < 0) {
       return;
     }
-    columnsToResize = tableColumns.filterProperty('canAutoResize');
     totalDefaultWidth = this._getTotalWidth(columnsToResize, 'defaultColumnWidth');
     return columnsToResize.forEach(function(column) {
       var columnWidth;

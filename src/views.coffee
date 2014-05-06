@@ -301,14 +301,20 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
   * @argument event jQuery event
   ###
   onColumnResize: (event, ui) ->
-    @elementSizeDidChange()
     # Special case for force-filled columns: if this is the last column you
     # resize (or the only column), then it will be reset to before the resize
     # to preserve the table's force-fill property.
+    # TODO: Take this out of the view if possible
     if @get('controller.forceFillColumns') and
         @get('controller.columns').filterProperty('canAutoResize').length > 1
-      @set('column.canAutoResize', false)
-    @get("column").resize(ui.size.width)
+      @set('column.canAutoResize', no)
+    @get('column').resize(ui.size.width)
+    @elementSizeDidChange()
+
+    # Trigger the table resize (and redraw of layout) when resizing is done
+    if event.type is 'resizestop'
+      this.get('controller').elementSizeDidChange()
+    return
 
   elementSizeDidChange: ->
     maxHeight = 0
@@ -317,7 +323,6 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
       thisHeight = $(this).outerHeight()
       if thisHeight > maxHeight then maxHeight = thisHeight
     @set 'controller._contentHeaderHeight', maxHeight
-    return
 
 ################################################################################
 
