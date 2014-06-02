@@ -309,6 +309,7 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
         @get('controller.columns').filterProperty('canAutoResize').length > 1
       @set('column.canAutoResize', no)
     @get('column').resize(ui.size.width)
+    @set 'controller.columnsFillTable', no
     @elementSizeDidChange()
 
     # Trigger the table resize (and redraw of layout) when resizing is done

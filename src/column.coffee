@@ -11,20 +11,22 @@ Ember.Table.ColumnDefinition = Ember.Object.extend
   # communicate what needs to be extracted from the row
   contentPath:   undefined
   # Min column width
-  minWidth: undefined
+  minWidth: 50
   # Max column width
   maxWidth: undefined
   # column width
   defaultColumnWidth: 150
   # TODO(Peter): Rename it to width
   columnWidth:  Ember.computed.oneWay 'defaultColumnWidth'
+  # Updated whenever the column (not window) is resized. Can be saved to a DB
+  savedWidth:  Ember.computed.oneWay 'defaultColumnWidth'
   # wether the colum is resizable
   isResizable:  yes
   # wether the column is sortable
   isSortable:  yes
   # text align left | center | right
   textAlign: 'text-align-right'
-  canAutoResize: yes
+  canAutoResize: no
 
   # The view class we want to use for the header
   headerCellViewClass:  'Ember.Table.HeaderCell'
