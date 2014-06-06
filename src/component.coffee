@@ -204,7 +204,7 @@ Ember.AddeparMixins.ResizeHandlerMixin,
       columnsToResize = nextColumnsToResize
 
   doForceFillColumns: ->
-    columnsToResize = @get('tableColumns').filterProperty('canAutoResize')
+    columnsToResize = @get('tableColumns').concat(@get('fixedColumns')).filterProperty('canAutoResize')
     @resizeColumns columnsToResize
 
   onBodyContentLengthDidChange: Ember.observer ->
