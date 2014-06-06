@@ -1051,11 +1051,7 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
   */
 
   onColumnResize: function(event, ui) {
-    if (this.get('controller.forceFillColumns') && this.get('controller.columns').filterProperty('canAutoResize').length > 1) {
-      this.set('column.canAutoResize', false);
-    }
     this.get('column').resize(ui.size.width);
-    this.set('controller.columnsFillTable', false);
     this.elementSizeDidChange();
     if (event.type === 'resizestop') {
       this.get('controller').elementSizeDidChange();
@@ -1296,7 +1292,6 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
   hasFooter: true,
   enableColumnReorder: true,
   selection: null,
-  columnsFillTable: true,
   tableRowViewClass: 'Ember.Table.TableRow',
   actions: {
     addColumn: Ember.K,
@@ -1372,21 +1367,6 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     this.prepareTableColumns(columns);
     return columns;
   }).property('columns.@each', 'numFixedColumns'),
-  /**
-  * Amount of width that could be filled by auto-resizing columns. Could be
-  * negative if the table is too wide and scrolls horizontally.
-  * @memberof Ember.Table.EmberTableComponent
-  * @instance
-  * @todo Much more doc needed
-  */
-
-  availableWidth: Ember.computed(function() {
-    var allColumns, unresizableColumns, unresizableWidth;
-    allColumns = this.get('tableColumns').concat(this.get('fixedColumns'));
-    unresizableColumns = allColumns.filterProperty('canAutoResize', false);
-    unresizableWidth = this._getTotalWidth(unresizableColumns);
-    return this.get('_width') - unresizableWidth;
-  }).property('_width', 'fixedColumns.[]', 'fixedColumns.@each.canAutoResize', 'tableColumns.[]', 'tableColumns.@each.canAutoResize'),
   prepareTableColumns: function(columns) {
     return columns.setEach('controller', this);
   },
@@ -1403,9 +1383,6 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
   */
 
   onResizeEnd: function() {
-    if (this.tableWidthNowTooSmall()) {
-      this.set('columnsFillTable', true);
-    }
     return Ember.run(this, this.elementSizeDidChange);
   },
   /**
@@ -1422,41 +1399,27 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     this.set('_height', this.$().parent().outerHeight());
     return Ember.run.next(this, this.updateLayout);
   },
-  tableWidthNowTooSmall: function() {
-    var newTableWidth, oldTableWidth, totalColumnWidth;
-    oldTableWidth = this.get('_width');
-    newTableWidth = this.$().parent().outerWidth();
-    totalColumnWidth = this._getTotalWidth(this.get('tableColumns'));
-    return (oldTableWidth > totalColumnWidth) && (newTableWidth < totalColumnWidth);
-  },
-  expandResizeableColumnsToFillTable: function() {
-    var fixedColumnsWidth, tableColumns, totalResizableWidth, totalWidth, unresizableColumns, unresizableWidth;
-    totalWidth = this.get('_width');
-    fixedColumnsWidth = this.get('_fixedColumnsWidth');
-    tableColumns = this.get('tableColumns');
-    unresizableColumns = tableColumns.filterProperty('canAutoResize', false);
-    unresizableWidth = this._getTotalWidth(unresizableColumns);
-    return totalResizableWidth = totalWidth - unresizableWidth;
-  },
   updateLayout: function() {
     if (this.get('state') !== 'inDOM') {
       return;
     }
     this.$('.antiscroll-wrap').antiscroll();
-    if (this.get('columnsFillTable')) {
-      return this.doForceFillColumns();
-    }
+    return this.doForceFillColumns();
   },
-  resizeColumns: function(columnsToResize) {
-    var availableWidth, doNextLoop, nextColumnsToResize, totalSavedWidth, _results,
+  doForceFillColumns: function() {
+    var allColumns, availableWidth, columnsToResize, doNextLoop, nextColumnsToResize, totalSavedWidth, unresizableColumns, unresizableWidth, _results,
       _this = this;
-    availableWidth = this.get('availableWidth');
-    totalSavedWidth = this._getTotalWidth(columnsToResize, 'savedWidth');
+    allColumns = this.get('tableColumns').concat(this.get('fixedColumns'));
+    columnsToResize = allColumns.filterProperty('canAutoResize');
+    unresizableColumns = allColumns.filterProperty('canAutoResize', false);
+    unresizableWidth = this._getTotalWidth(unresizableColumns);
+    availableWidth = this.get('_width') - unresizableWidth;
     doNextLoop = true;
     _results = [];
     while (doNextLoop) {
       doNextLoop = false;
       nextColumnsToResize = [];
+      totalSavedWidth = this._getTotalWidth(columnsToResize, 'savedWidth');
       columnsToResize.forEach(function(column) {
         var newColumnWidth;
         newColumnWidth = Math.floor((column.get('savedWidth') / totalSavedWidth) * availableWidth);
@@ -1476,11 +1439,6 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
       _results.push(columnsToResize = nextColumnsToResize);
     }
     return _results;
-  },
-  doForceFillColumns: function() {
-    var columnsToResize;
-    columnsToResize = this.get('tableColumns').concat(this.get('fixedColumns')).filterProperty('canAutoResize');
-    return this.resizeColumns(columnsToResize);
   },
   onBodyContentLengthDidChange: Ember.observer(function() {
     return Ember.run.next(this, function() {

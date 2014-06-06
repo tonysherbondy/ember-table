@@ -36,8 +36,6 @@ Ember.AddeparMixins.ResizeHandlerMixin,
 
   selection: null
 
-  columnsFillTable: yes
-
   # specify the view class to use for rendering the table rows
   tableRowViewClass: 'Ember.Table.TableRow'
 
@@ -103,21 +101,6 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     columns
   .property 'columns.@each', 'numFixedColumns'
 
-  ###*
-  * Amount of width that could be filled by auto-resizing columns. Could be
-  * negative if the table is too wide and scrolls horizontally.
-  * @memberof Ember.Table.EmberTableComponent
-  * @instance
-  * @todo Much more doc needed
-  ###
-  availableWidth: Ember.computed ->
-    allColumns = @get('tableColumns').concat(@get('fixedColumns'))
-    unresizableColumns = allColumns.filterProperty('canAutoResize', no)
-    unresizableWidth = @_getTotalWidth unresizableColumns
-    @get('_width') - unresizableWidth
-  .property('_width', 'fixedColumns.[]', 'fixedColumns.@each.canAutoResize',
-    'tableColumns.[]', 'tableColumns.@each.canAutoResize')
-
   prepareTableColumns: (columns) ->
     columns.setEach 'controller', this
 
@@ -141,8 +124,6 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     # turned on testing mode, which disabled the run-loop's autorun. You
     # will need to wrap any code with asynchronous side-effects in an
     # Ember.run
-    if @tableWidthNowTooSmall()
-      @set 'columnsFillTable', yes
     Ember.run this, @elementSizeDidChange
 
   ###*
@@ -158,35 +139,23 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     # be used
     Ember.run.next this, @updateLayout
 
-  tableWidthNowTooSmall: ->
-    oldTableWidth = @get '_width'
-    newTableWidth = @$().parent().outerWidth()
-    totalColumnWidth = @_getTotalWidth @get('tableColumns')
-
-    return (oldTableWidth > totalColumnWidth) and (newTableWidth < totalColumnWidth)
-
-  expandResizeableColumnsToFillTable: ->
-    # Expand the columns if there's extra space
-    totalWidth = @get '_width'
-    fixedColumnsWidth = @get '_fixedColumnsWidth'
-    tableColumns = @get 'tableColumns'
-    unresizableColumns = tableColumns.filterProperty('canAutoResize', no)
-    unresizableWidth = @_getTotalWidth unresizableColumns
-    totalResizableWidth = totalWidth - unresizableWidth
-
   updateLayout: ->
     # updating antiscroll
     return unless @get('state') is 'inDOM'
     this.$('.antiscroll-wrap').antiscroll()
-    @doForceFillColumns() if @get 'columnsFillTable'
+    @doForceFillColumns()
 
-  resizeColumns: (columnsToResize) ->
-    availableWidth = @get('availableWidth')
-    totalSavedWidth = @_getTotalWidth columnsToResize, 'savedWidth'
+  doForceFillColumns: ->
+    allColumns = @get('tableColumns').concat(@get('fixedColumns'))
+    columnsToResize = allColumns.filterProperty('canAutoResize')
+    unresizableColumns = allColumns.filterProperty('canAutoResize', no)
+    unresizableWidth = @_getTotalWidth unresizableColumns
+    availableWidth = @get('_width') - unresizableWidth
     doNextLoop = yes
     while doNextLoop
       doNextLoop = no
       nextColumnsToResize = []
+      totalSavedWidth = @_getTotalWidth columnsToResize, 'savedWidth'
       columnsToResize.forEach (column) =>
         newColumnWidth = Math.floor(
           (column.get('savedWidth') / totalSavedWidth) * availableWidth)
@@ -202,10 +171,6 @@ Ember.AddeparMixins.ResizeHandlerMixin,
           column.set 'columnWidth', newColumnWidth
           nextColumnsToResize.pushObject(column)
       columnsToResize = nextColumnsToResize
-
-  doForceFillColumns: ->
-    columnsToResize = @get('tableColumns').concat(@get('fixedColumns')).filterProperty('canAutoResize')
-    @resizeColumns columnsToResize
 
   onBodyContentLengthDidChange: Ember.observer ->
     Ember.run.next this, -> Ember.run.once this, @updateLayout
