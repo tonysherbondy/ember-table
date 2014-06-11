@@ -78,9 +78,9 @@ Ember.Table.TableRow = Ember.LazyItemView.extend
   width:    Ember.computed.alias 'controller._rowWidth'
   height:   Ember.computed.alias 'controller.rowHeight'
 
-  isLastRow: Ember.computed ->
-    @get('row') is @get('controller.bodyContent.lastObject')
-  .property 'controller.bodyContent.lastObject', 'row'
+  isLastRow: Ember.computed.alias 'row.isLast'
+
+  somethingElse: false
 
   ###*
   * Mouse enter callback

@@ -169,6 +169,10 @@ Ember.AddeparMixins.ResizeHandlerMixin,
       columnWidth = column.get('columnWidth') + additionWidthPerColumn
       column.set 'columnWidth', columnWidth
 
+  onBodyContentDidChange: (->
+    @get('bodyContent').controllerAt(this.get('bodyContent.length') - 1).set('isLast', true)
+  ).observes('bodyContent', 'bodyContent.[]').on('init')
+
   onBodyContentLengthDidChange: Ember.observer ->
     Ember.run.next this, -> Ember.run.once this, @updateLayout
   , 'bodyContent.length'

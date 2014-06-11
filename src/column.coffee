@@ -67,6 +67,8 @@ Ember.Table.Row = Ember.ObjectProxy.extend
   ###
   content: null
 
+  isLast: false
+
   ###*
   * Is Selected?
   * @memberof Ember.Table.Row
