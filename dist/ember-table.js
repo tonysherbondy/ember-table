@@ -1,8 +1,3 @@
-/*!
-* ember-table v0.2.1
-* Copyright 2012-2014 Addepar Inc.
-* See LICENSE.
-*/
 (function() {
 
 var _ref;
@@ -519,11 +514,12 @@ Ember.MultiItemViewCollectionView = Ember.CollectionView.extend(Ember.AddeparMix
   styleBindings: 'width',
   itemViewClassField: null,
   createChildView: function(view, attrs) {
-    var itemViewClass, itemViewClassField;
+    var globalLookup, itemViewClass, itemViewClassField;
     itemViewClassField = this.get('itemViewClassField');
     itemViewClass = attrs.content.get(itemViewClassField);
     if (typeof itemViewClass === 'string') {
-      itemViewClass = Ember.get(Ember.lookup, itemViewClass);
+      globalLookup = Ember.get(Ember.lookup, itemViewClass);
+      itemViewClass = globalLookup || this.container.lookup(itemViewClass);
     }
     return this._super(itemViewClass, attrs);
   }

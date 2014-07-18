@@ -11,7 +11,8 @@ Ember.CollectionView.extend Ember.AddeparMixins.StyleBindingsMixin,
     itemViewClassField = @get 'itemViewClassField'
     itemViewClass = attrs.content.get(itemViewClassField)
     if typeof itemViewClass is 'string'
-      itemViewClass = Ember.get Ember.lookup, itemViewClass
+      globalLookup = Ember.get Ember.lookup, itemViewClass
+      itemViewClass = globalLookup or @container.lookup(itemViewClass)
     @_super(itemViewClass, attrs)
 
 Ember.MouseWheelHandlerMixin = Ember.Mixin.create
