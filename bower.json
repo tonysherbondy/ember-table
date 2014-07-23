@@ -13,7 +13,6 @@
   ],
   "ignore": [
     "app",
-    "dependencies",
     "src",
     "tests",
     ".gitignore",
